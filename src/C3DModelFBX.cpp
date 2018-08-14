@@ -800,8 +800,14 @@ void C3DModelFBX::ExportSubTree(FbxNode* pNode)
     uSize += CFileExportSTUFormat::CopyString(nodeName.c_str(), &Data);
     uSize += CFileExportSTUFormat::CopyString(pNode->GetName(), &Data);
 
+    FbxAMatrix localTransform = pNode->EvaluateLocalTransform();
+
+    // If our mesh is offset from its pivot point, we need to apply that to the local transformation.
+    FbxAMatrix pivotOffset = FbxAMatrix(pNode->GeometricTranslation.Get(), pNode->GeometricRotation.Get(), pNode->GeometricScaling.Get());
+    localTransform *= pivotOffset;
+
     // Get node transformation matrix
-    glm::mat4 matrix = ConvertFbxToGLM(pNode->EvaluateLocalTransform());
+    glm::mat4 matrix = ConvertFbxToGLM(localTransform);
     WRITE_VALUE(matrix);
 
     std::vector<FbxMesh*> meshes;
